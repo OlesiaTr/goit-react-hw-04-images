@@ -1,5 +1,11 @@
+// Core
+import { Component } from 'react';
+
 // Utils
-import { ToastContainer } from 'react-toastify';
+import toast, { Toaster } from 'react-hot-toast';
+
+// API
+import { PixabayAPI } from './../api';
 
 // Styles
 import { GlobalStyle } from './GlobalStyle';
@@ -11,21 +17,76 @@ import { ImageGallery } from './ImageGallery';
 import { Button } from './Button';
 import { Loader } from './Loader';
 
-export const App = () => {
-  return (
-    <Layout>
-      {/* The component takes one prop onSubmit - a function to pass the value of the input When the form is submitted. Creates a DOM element of the following structure. */}
-      <Searchbar />
+export class App extends Component {
+  state = {
+    searchName: '',
+    imgs: [],
+    currentPage: 1,
+    totalPages: null,
+    error: null,
+    isLoading: false,
+  };
 
-      {/* A list of image cards. Creates a DOM element of the following structure. */}
-      <ImageGallery />
+  componentDidUpdate(_, prevState) {
+    if (
+      prevState.searchName !== this.state.searchName ||
+      prevState.currentPage !== this.state.currentPage
+    )
+      this.getImgs();
+  }
 
-      {/* Pressing the Load more button should load the next batch of Images and rendered with the previous ones. The button should be rendered only when there are some loaded images. If the image array is empty, the button is not rendered. */}
-      <Button />
+  getImgs = async () => {
+    try {
+      this.setState({ isLoading: true, error: null });
 
-      {/* Spinner component, displays while images are being loaded.  */}
-      <Loader />
-      <GlobalStyle />
-    </Layout>
-  );
-};
+      const { searchName, currentPage, imgs } = this.state;
+
+      const response = await PixabayAPI(searchName, currentPage);
+      const data = response.hits.map(
+        ({ id, webformatURL, largeImageURL, tags }) => {
+          return { id, webformatURL, largeImageURL, tags };
+        }
+      );
+
+      this.setState({
+        imgs: [...imgs, ...data],
+        isLoading: false,
+      });
+
+      if (response.totalHits < 1)
+        toast.error(
+          'Sorry, we didn`t find any images according to your request.😖'
+        );
+    } catch {
+      toast.error('Oops, something went wrong. Try reloading the page!🤨');
+    }
+  };
+
+  handleSubmit = searchName => {
+    this.setState({
+      searchName,
+      imgs: [],
+      currentPage: 1,
+    });
+  };
+
+  render() {
+    return (
+      <Layout>
+        <Searchbar onSubmit={this.handleSubmit} />
+
+        {/* A list of image cards. Creates a DOM element of the following structure. */}
+        <ImageGallery />
+
+        {/* Pressing the Load more button should load the next batch of Images and rendered with the previous ones. The button should be rendered only when there are some loaded images. If the image array is empty, the button is not rendered. */}
+        <Button />
+
+        {/* Spinner component, displays while images are being loaded.  */}
+        <Loader />
+
+        <Toaster position="bottom-right" reverseOrder={false} />
+        <GlobalStyle />
+      </Layout>
+    );
+  }
+}
