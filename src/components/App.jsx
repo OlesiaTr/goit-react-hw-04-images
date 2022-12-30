@@ -17,6 +17,9 @@ import { ImageGallery } from './ImageGallery';
 import { Button } from './Button';
 import { Loader } from './Loader';
 
+// CONSTANTS
+const PIXABAY_PER_PAGE = 12;
+
 export class App extends Component {
   state = {
     searchName: '',
@@ -51,6 +54,7 @@ export class App extends Component {
       this.setState({
         imgs: [...imgs, ...data],
         isLoading: false,
+        totalPages: Math.ceil(response.totalHits / PIXABAY_PER_PAGE),
       });
 
       if (response.totalHits < 1)
@@ -70,21 +74,28 @@ export class App extends Component {
     });
   };
 
+  onBtnClick = () => {
+    this.setState(prevState => ({
+      currentPage: prevState.currentPage + 1,
+    }));
+  };
+
   render() {
+    const { imgs, isLoading, totalPages, currentPage } = this.state;
+
     return (
       <Layout>
         <Searchbar onSubmit={this.handleSubmit} />
 
-        {/* A list of image cards. Creates a DOM element of the following structure. */}
-        <ImageGallery />
+        <ImageGallery data={imgs} />
 
-        {/* Pressing the Load more button should load the next batch of Images and rendered with the previous ones. The button should be rendered only when there are some loaded images. If the image array is empty, the button is not rendered. */}
-        <Button />
+        {imgs.length > 0 && totalPages !== currentPage && !isLoading && (
+          <Button onClick={this.onBtnClick} />
+        )}
 
-        {/* Spinner component, displays while images are being loaded.  */}
-        <Loader />
+        {isLoading && <Loader />}
 
-        <Toaster position="bottom-right" reverseOrder={false} />
+        <Toaster position="top-right" reverseOrder={false} />
         <GlobalStyle />
       </Layout>
     );

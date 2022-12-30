@@ -1,12 +1,26 @@
 // Components
 import { ImageGalleryItem } from 'components/ImageGalleryItem';
 
-export const ImageGallery = () => {
+// Utils
+import PropTypes from 'prop-types';
+
+// Styles
+import { GalleryList } from './ImageGallery.styled';
+
+export const ImageGallery = ({ data }) => {
   return (
-    <ul class="gallery">
-      {/* Set <li> with images */}
-      {/* A list item component with an image. Creates a DOM element of the following structure. */}
-      <ImageGalleryItem />
-    </ul>
+    <GalleryList>
+      {data.map(({ id, ...otherProps }) => {
+        return <ImageGalleryItem key={id} {...otherProps} />;
+      })}
+    </GalleryList>
   );
+};
+
+ImageGallery.propType = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+    }).isRequired
+  ).isRequired,
 };
