@@ -42,9 +42,14 @@ export class App extends Component {
     try {
       this.setState({ isLoading: true, error: null });
 
-      const { searchName, currentPage, imgs } = this.state;
+      let { searchName, currentPage, imgs } = this.state;
 
       const response = await PixabayAPI(searchName, currentPage);
+      if (currentPage === 1)
+        this.setState({
+          currentPage: 2,
+        });
+
       const data = response.hits.map(
         ({ id, webformatURL, largeImageURL, tags }) => {
           return { id, webformatURL, largeImageURL, tags };
@@ -67,6 +72,8 @@ export class App extends Component {
   };
 
   handleSubmit = searchName => {
+    // if (searchName === this.state.searchName) return;
+
     this.setState({
       searchName,
       imgs: [],
@@ -89,9 +96,14 @@ export class App extends Component {
 
         <ImageGallery data={imgs} />
 
-        {imgs.length > 0 && totalPages !== currentPage && !isLoading && (
-          <Button onClick={this.onBtnClick} />
-        )}
+        {imgs.length > PIXABAY_PER_PAGE &&
+          totalPages !== currentPage &&
+          !isLoading && (
+            <>
+              <Button onClick={this.onBtnClick} />
+              <div ref={this.scrollToLoadMoreBtn} />
+            </>
+          )}
 
         {isLoading && <Loader />}
 
