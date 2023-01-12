@@ -1,5 +1,5 @@
 // Core
-import { Component, useState } from 'react';
+import { useState } from 'react';
 
 // Utils
 import { PropTypes } from 'prop-types';
