@@ -1,5 +1,5 @@
 // Core
-import { Component } from 'react';
+import { useState } from 'react';
 
 // Utils
 import { MdImageSearch } from 'react-icons/md';
@@ -8,44 +8,37 @@ import PropTypes from 'prop-types';
 // Styles
 import { Header, SearchForm, SearchBtn, SearchInput } from './Searchbar.styled';
 
-export class Searchbar extends Component {
-  state = {
-    searchName: '',
-  };
+export const Searchbar = ({ onSubmit }) => {
+  const [searchName, setSearchName] = useState('');
 
-  static propTypes = {
-    onSubmit: PropTypes.func.isRequired,
-  };
+  const handleInputChange = e =>
+    setSearchName(e.currentTarget.value.toLowerCase());
 
-  handleInputChange = e => {
-    this.setState({
-      searchName: e.currentTarget.value.toLowerCase(),
-    });
-  };
-
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
 
-    this.props.onSubmit(this.state.searchName);
+    onSubmit(searchName);
   };
 
-  render() {
-    return (
-      <Header>
-        <SearchForm onSubmit={this.handleSubmit}>
-          <SearchBtn type="submit">
-            <MdImageSearch />
-          </SearchBtn>
+  return (
+    <Header>
+      <SearchForm onSubmit={handleSubmit}>
+        <SearchBtn type="submit">
+          <MdImageSearch />
+        </SearchBtn>
 
-          <SearchInput
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            onChange={this.handleInputChange}
-          />
-        </SearchForm>
-      </Header>
-    );
-  }
-}
+        <SearchInput
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          onChange={handleInputChange}
+        />
+      </SearchForm>
+    </Header>
+  );
+};
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};

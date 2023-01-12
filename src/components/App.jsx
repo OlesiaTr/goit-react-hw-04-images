@@ -1,5 +1,5 @@
 // Core
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 
 // Utils
 import toast, { Toaster } from 'react-hot-toast';
@@ -20,96 +20,67 @@ import { Loader } from './Loader';
 // CONSTANTS
 const PIXABAY_PER_PAGE = 12;
 
-export class App extends Component {
-  state = {
-    searchName: '',
-    imgs: [],
-    currentPage: 1,
-    totalPages: null,
-    error: null,
-    isLoading: false,
-  };
+export const App = () => {
+  const [searchName, setSearchName] = useState('');
+  const [imgs, setImgs] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  componentDidUpdate(_, prevState) {
-    if (
-      prevState.searchName !== this.state.searchName ||
-      prevState.currentPage !== this.state.currentPage
-    )
-      this.getImgs();
-  }
+  useEffect(() => {
+    if (searchName === '') return;
 
-  getImgs = async () => {
-    try {
-      this.setState({ isLoading: true, error: null });
+    const getImgs = async () => {
+      try {
+        setIsLoading(true);
 
-      let { searchName, currentPage, imgs } = this.state;
+        const response = await PixabayAPI(searchName, currentPage);
+        if (currentPage === 1) setCurrentPage(2);
 
-      const response = await PixabayAPI(searchName, currentPage);
-      if (currentPage === 1)
-        this.setState({
-          currentPage: 2,
-        });
-
-      const data = response.hits.map(
-        ({ id, webformatURL, largeImageURL, tags }) => {
-          return { id, webformatURL, largeImageURL, tags };
-        }
-      );
-
-      this.setState({
-        imgs: [...imgs, ...data],
-        isLoading: false,
-        totalPages: Math.ceil(response.totalHits / PIXABAY_PER_PAGE),
-      });
-
-      if (response.totalHits < 1)
-        toast.error(
-          'Sorry, we didn`t find any images according to your request.😖'
+        const data = response.hits.map(
+          ({ id, webformatURL, largeImageURL, tags }) => {
+            return { id, webformatURL, largeImageURL, tags };
+          }
         );
-    } catch {
-      toast.error('Oops, something went wrong. Try reloading the page!🤨');
-    }
+
+        setImgs(prev => [...prev, ...data]);
+        setTotalPages(Math.ceil(response.totalHits / PIXABAY_PER_PAGE));
+        setIsLoading(false);
+
+        if (response.totalHits < 1)
+          toast.error(
+            'Sorry, we didn`t find any images according to your request.😖'
+          );
+      } catch {
+        toast.error('Oops, something went wrong. Try reloading the page!🤨');
+      }
+    };
+
+    getImgs();
+  }, [currentPage, searchName]);
+
+  const handleSubmit = searchName => {
+    setSearchName(searchName);
+    setImgs([]);
+    setCurrentPage(1);
   };
 
-  handleSubmit = searchName => {
-    // if (searchName === this.state.searchName) return;
+  const onBtnClick = () => setCurrentPage(prevState => prevState + 1);
 
-    this.setState({
-      searchName,
-      imgs: [],
-      currentPage: 1,
-    });
-  };
+  return (
+    <Layout>
+      <Searchbar onSubmit={handleSubmit} />
 
-  onBtnClick = () => {
-    this.setState(prevState => ({
-      currentPage: prevState.currentPage + 1,
-    }));
-  };
+      <ImageGallery data={imgs} />
 
-  render() {
-    const { imgs, isLoading, totalPages, currentPage } = this.state;
+      {imgs.length > PIXABAY_PER_PAGE &&
+        totalPages !== currentPage &&
+        !isLoading && <Button onClick={onBtnClick} />}
 
-    return (
-      <Layout>
-        <Searchbar onSubmit={this.handleSubmit} />
+      {isLoading && <Loader />}
 
-        <ImageGallery data={imgs} />
-
-        {imgs.length > PIXABAY_PER_PAGE &&
-          totalPages !== currentPage &&
-          !isLoading && (
-            <>
-              <Button onClick={this.onBtnClick} />
-              <div ref={this.scrollToLoadMoreBtn} />
-            </>
-          )}
-
-        {isLoading && <Loader />}
-
-        <Toaster position="top-right" reverseOrder={false} />
-        <GlobalStyle />
-      </Layout>
-    );
-  }
-}
+      <Toaster position="top-right" reverseOrder={false} />
+      <GlobalStyle />
+    </Layout>
+  );
+};

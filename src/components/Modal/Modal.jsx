@@ -1,5 +1,5 @@
 // Core
-import { Component } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 // Utils
@@ -11,39 +11,33 @@ import { Overlay, ModalWindow } from './Modal.styled';
 // Variables
 const modalRoot = document.querySelector('#modal-root');
 
-export class Modal extends Component {
-  static propTypes = PropTypes.shape({
-    img: PropTypes.string.isRequired,
-    desc: PropTypes.string.isRequired,
-    onClose: PropTypes.func.isRequired,
-  }).isRequired;
+export const Modal = ({ onClose, img, desc }) => {
+  useEffect(() => {
+    const closeModalOnEsc = e => {
+      if (e.key === 'Escape') onClose();
+    };
 
-  componentDidMount() {
-    window.addEventListener('keydown', this.closeModalOnEsc);
-  }
+    window.addEventListener('keydown', closeModalOnEsc);
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.closeModalOnEsc);
-  }
+    return () => window.removeEventListener('keydown', closeModalOnEsc);
+  }, [onClose]);
 
-  closeModalOnEsc = e => {
-    if (e.key === 'Escape') this.props.onClose();
+  const closeModal = e => {
+    if (e.target === e.currentTarget) onClose();
   };
 
-  closeModal = e => {
-    if (e.target === e.currentTarget) this.props.onClose();
-  };
+  return createPortal(
+    <Overlay onClick={closeModal}>
+      <ModalWindow>
+        <img src={img} alt={desc} />
+      </ModalWindow>
+    </Overlay>,
+    modalRoot
+  );
+};
 
-  render() {
-    const { img, desc } = this.props;
-
-    return createPortal(
-      <Overlay onClick={this.closeModal}>
-        <ModalWindow>
-          <img src={img} alt={desc} />
-        </ModalWindow>
-      </Overlay>,
-      modalRoot
-    );
-  }
-}
+Modal.propTypes = PropTypes.shape({
+  img: PropTypes.string.isRequired,
+  desc: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+}).isRequired;
