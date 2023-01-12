@@ -61,7 +61,4 @@ img {
 a {
   text-decoration: none;
 }
-figure {
-  margin: 0;
-}
 `;
