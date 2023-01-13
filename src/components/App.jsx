@@ -35,8 +35,8 @@ export const App = () => {
         setIsLoading(true);
 
         const response = await PixabayAPI(searchName, currentPage);
-        if (currentPage === 1)
-          if (response.total > PIXABAY_PER_PAGE) setCurrentPage(2);
+        // if (currentPage === 1)
+        //   if (response.total > PIXABAY_PER_PAGE) setCurrentPage(2);
 
         const data = response.hits.map(
           ({ id, webformatURL, largeImageURL, tags }) => {
@@ -60,8 +60,13 @@ export const App = () => {
     getImgs();
   }, [currentPage, searchName]);
 
-  const handleSubmit = searchName => {
-    setSearchName(searchName);
+  const handleSubmit = query => {
+    if (searchName === query) {
+      toast.error('Please enter a new request');
+      return;
+    }
+
+    setSearchName(query);
     setImgs([]);
     setCurrentPage(1);
   };

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Setups
-axios.defaults.baseURL = 'https://pixabay.com/api/';
+axios.defaults.baseURL = 'https://pixabay.com/api';
 
 const params = {
   key: `${process.env.REACT_APP_PIXABAY}`,
@@ -14,8 +14,7 @@ const params = {
 };
 
 // HTTP requests
-export const PixabayAPI = async (query, page) => {
-  const URLaxios = `/?q=${query}&page=${page}`;
-  const { data } = await axios.get(URLaxios, { params });
+export const PixabayAPI = async (q, page) => {
+  const { data } = await axios.get('/', { params: { q, page, ...params } });
   return data;
 };
